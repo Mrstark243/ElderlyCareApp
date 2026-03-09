@@ -1,0 +1,4 @@
+DEBUG: Mel Output (Log Domain) Stats: Min=-15.0726, Max=-2.5878, Mean=-10.9858
+DEBUG: Average Max Attention Score: 0.0903 (Close to 1.0 is good, close to 0.0 is bad)
+DEBUG: Mel Output (Linear Domain) Stats: Min=0.0000, Max=0.0752, Mean=0.0004
+DEBUG: Waveform Stats: Min=-0.0016, Max=0.0017, Mean=-0.0000
