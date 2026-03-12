@@ -35,6 +35,7 @@ class UserBase(BaseModel):
     username: str
     phone_number: str
     role: str  # "elderly" or "caretaker"
+    expo_push_token: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str

@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION, lifespan=lifespan)
 
-from app.api.endpoints import auth, ai, media, status, reminders
+from app.api.endpoints import auth, ai, media, status, reminders, geofence
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -39,6 +39,7 @@ app.include_router(ai.router, prefix="/api/v1/ai", tags=["ai"])
 app.include_router(media.router, prefix="/api/v1/media", tags=["media"])
 app.include_router(status.router, prefix="/api/v1/status", tags=["status"])
 app.include_router(reminders.router, prefix="/api/v1/reminders", tags=["reminders"])
+app.include_router(geofence.router, prefix="/api/v1/geofence", tags=["geofence"])
 
 @app.get("/")
 async def root():

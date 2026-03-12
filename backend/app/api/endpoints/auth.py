@@ -63,3 +63,16 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         data={"sub": user["username"], "role": user["role"]}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "role": user["role"]}
+
+@router.post("/update-push-token")
+async def update_push_token(token_data: dict, current_user: dict = Depends(get_current_user)):
+    """Receives `{"token": "ExponentPushToken[...]"}` and saves it to the user."""
+    expo_push_token = token_data.get("token")
+    if not expo_push_token:
+        raise HTTPException(status_code=400, detail="Token not provided")
+    
+    await db.get_db().users.update_one(
+        {"username": current_user["username"]},
+        {"$set": {"expo_push_token": expo_push_token}}
+    )
+    return {"message": "Push token updated successfully"}

@@ -9,6 +9,7 @@ class GeoFenceBase(BaseModel):
     longitude: float
     radius: float # in meters
     is_active: bool = True
+    caretaker_username: Optional[str] = None
 
 class GeoFenceCreate(GeoFenceBase):
     pass

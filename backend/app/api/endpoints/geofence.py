@@ -3,6 +3,7 @@ from app.models.geofence import GeoFenceCreate, GeoFenceResponse, GeoFenceInDB
 from app.db.mongodb import db
 from app.api.endpoints.auth import get_current_user
 from math import radians, cos, sin, asin, sqrt
+import requests
 
 router = APIRouter()
 
@@ -27,7 +28,11 @@ async def create_geofence(geofence: GeoFenceCreate, current_user: dict = Depends
     if existing:
         await db.get_db().geofences.delete_one({"_id": existing["_id"]})
 
-    new_geofence = await db.get_db().geofences.insert_one(geofence.dict())
+    # Inject the caretaker username so we know who to alert
+    geofence_dict = geofence.dict()
+    geofence_dict["caretaker_username"] = current_user["username"]
+
+    new_geofence = await db.get_db().geofences.insert_one(geofence_dict)
     created = await db.get_db().geofences.find_one({"_id": new_geofence.inserted_id})
     return created
 
@@ -41,6 +46,23 @@ async def check_location(location: dict, current_user: dict = Depends(get_curren
     
     dist = haversine(location["longitude"], location["latitude"], geofence["longitude"], geofence["latitude"])
     if dist > geofence["radius"]:
+        # Alert the caretaker
+        caretaker_username = geofence.get("caretaker_username")
+        if caretaker_username:
+            caretaker = await db.get_db().users.find_one({"username": caretaker_username})
+            if caretaker and caretaker.get("expo_push_token"):
+                push_token = caretaker["expo_push_token"]
+                message = {
+                    "to": push_token,
+                    "title": "📍 Geofence Alert",
+                    "body": f"{current_user['username']} has left their safe zone! (Currently {int(dist)}m away from center)",
+                    "sound": "default"
+                }
+                try:
+                    requests.post("https://exp.host/--/api/v2/push/send", json=message)
+                except Exception as e:
+                    print(f"Failed to send push notification: {e}")
+
         return {"alert": True, "distance_outside": dist - geofence["radius"], "message": "User is outside the geofence!"}
     
     return {"alert": False, "message": "User is within safe zone"}
